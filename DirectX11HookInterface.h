@@ -11,40 +11,40 @@ class D3D11Texture1DHookInterface;
 class D3D11Texture2DHookInterface;
 class D3D11Texture3DHookInterface;
 
-// DirectX ‚Ì interface ‚Ìƒƒ“ƒoŠÖ”ŒÄ‚Ño‚µ‚ğAtemplate ˆø”‚Éw’è‚µ‚½ class ‚Ì“¯ƒƒ“ƒoŠÖ”‚ÉƒŠƒ_ƒCƒŒƒNƒg‚³‚¹‚Ü‚·B
-// template ˆø”‚É‚Í HookInterface Œn class ‚ğŒp³‚µ‚½ class ‚ğw’è‚µ‚Ü‚·B
+// DirectX ã® interface ã®ãƒ¡ãƒ³ãƒé–¢æ•°å‘¼ã³å‡ºã—ã‚’ã€template å¼•æ•°ã«æŒ‡å®šã—ãŸ class ã®åŒãƒ¡ãƒ³ãƒé–¢æ•°ã«ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã•ã›ã¾ã™ã€‚
+// template å¼•æ•°ã«ã¯ HookInterface ç³» class ã‚’ç¶™æ‰¿ã—ãŸ class ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 // 
-// DirectX –{—ˆ‚Ì interface ‚ğ vtable ‚¾‚¯ HookInterface ‚Ì‚à‚Ì‚É·‚µ‘Ö‚¦‚é‚±‚Æ‚ÅÀŒ»‚µ‚Ä‚¢‚é‚½‚ßA
-// ŒÄ‚Î‚ê‚éƒƒ“ƒoŠÖ”‚Í HookInterface ‚Ì‚à‚Ì‚Å‚ ‚è‚È‚ª‚çAinstance ‚ÌÀ‘Ì‚Í DirectX ‚Ì“à•”À‘•‚Ì‚à‚ÌA‚Æ‚¢‚¤“Áê‚Èó‹µ‚É‚È‚è‚Ü‚·B
-// ‚±‚Ì‚½‚ßAHookInterface ‚Å‚Íƒƒ“ƒo•Ï”‚ğ³í‚Éˆµ‚¤‚±‚Æ‚ª‚Å‚«‚Ü‚¹‚ñB(ˆÓ}‚µ‚È‚¢Œ‹‰Ê‚É‚È‚é‚©AƒNƒ‰ƒbƒVƒ…‚ğµ‚«‚Ü‚·)
-// ƒƒ“ƒo•Ï”‚Í global •Ï”‚â class “à static •Ï”‚Å‘ã—p‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B
+// DirectX æœ¬æ¥ã® interface ã‚’ vtable ã ã‘ HookInterface ã®ã‚‚ã®ã«å·®ã—æ›¿ãˆã‚‹ã“ã¨ã§å®Ÿç¾ã—ã¦ã„ã‚‹ãŸã‚ã€
+// å‘¼ã°ã‚Œã‚‹ãƒ¡ãƒ³ãƒé–¢æ•°ã¯ HookInterface ã®ã‚‚ã®ã§ã‚ã‚ŠãªãŒã‚‰ã€instance ã®å®Ÿä½“ã¯ DirectX ã®å†…éƒ¨å®Ÿè£…ã®ã‚‚ã®ã€ã¨ã„ã†ç‰¹æ®ŠãªçŠ¶æ³ã«ãªã‚Šã¾ã™ã€‚
+// ã“ã®ãŸã‚ã€HookInterface ã§ã¯ãƒ¡ãƒ³ãƒå¤‰æ•°ã‚’æ­£å¸¸ã«æ‰±ã†ã“ã¨ãŒã§ãã¾ã›ã‚“ã€‚(æ„å›³ã—ãªã„çµæœã«ãªã‚‹ã‹ã€ã‚¯ãƒ©ãƒƒã‚·ãƒ¥ã‚’æ‹›ãã¾ã™)
+// ãƒ¡ãƒ³ãƒå¤‰æ•°ã¯ global å¤‰æ•°ã‚„ class å†… static å¤‰æ•°ã§ä»£ç”¨ã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚
 // 
-// DirectX ‚Ì interface ‚Ìƒƒ“ƒoŠÖ”‚Í stdcall ‚Å‚ ‚é‚±‚Æ‚É’ˆÓB
-// HookInterface ‚ÌŒp³æ‚àƒƒ“ƒoŠÖ”‚É stdcall ‚ğw’è‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B
+// DirectX ã® interface ã®ãƒ¡ãƒ³ãƒé–¢æ•°ã¯ stdcall ã§ã‚ã‚‹ã“ã¨ã«æ³¨æ„ã€‚
+// HookInterface ã®ç¶™æ‰¿å…ˆã‚‚ãƒ¡ãƒ³ãƒé–¢æ•°ã« stdcall ã‚’æŒ‡å®šã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚
 // 
-// ‚±‚Ìƒwƒbƒ_ƒtƒ@ƒCƒ‹‚ª’ñ‹Ÿ‚·‚é class (DXGISwapChainHookInterface ‚È‚Ç) ‚Ìƒƒ“ƒoŠÖ”‚ÍADirectX ‚Ì–{—ˆ‚Ì API ‚ğŒÄ‚Ñ‚Ü‚·B
-// ‚È‚Ì‚ÅAŒp³æ‚Å override ‚µ‚½ƒƒ“ƒoŠÖ”‚Í•K‚¸Œp³Œ³‚ÌŠÖ”‚àŒÄ‚Ô•K—v‚ª‚ ‚è‚Ü‚·B
+// ã“ã®ãƒ˜ãƒƒãƒ€ãƒ•ã‚¡ã‚¤ãƒ«ãŒæä¾›ã™ã‚‹ class (DXGISwapChainHookInterface ãªã©) ã®ãƒ¡ãƒ³ãƒé–¢æ•°ã¯ã€DirectX ã®æœ¬æ¥ã® API ã‚’å‘¼ã³ã¾ã™ã€‚
+// ãªã®ã§ã€ç¶™æ‰¿å…ˆã§ override ã—ãŸãƒ¡ãƒ³ãƒé–¢æ•°ã¯å¿…ãšç¶™æ‰¿å…ƒã®é–¢æ•°ã‚‚å‘¼ã¶å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚
 
-// —á:
+// ä¾‹:
 /*
     class HookTestD3D11DeviceContext : public D3D11DeviceContextHookInterface
     {
     typedef D3D11DeviceContextHookInterface super;
     public:
-        // DrawIndexedInstanced() ‚ğ hook ‚µ‚Äˆø”‚Ìƒpƒ‰ƒ[ƒ^‚ğƒfƒoƒbƒOo—Í
+        // DrawIndexedInstanced() ã‚’ hook ã—ã¦å¼•æ•°ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
         virtual void STDMETHODCALLTYPE DrawIndexedInstanced( UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
         {
             char buf[256];
             sprintf(buf, "DrawIndexedInstanced(): IndexCountPerInstance=%d InstanceCount=%d\n", IndexCountPerInstance, InstanceCount);
             OutputDebugStringA(buf);
 
-            // DirectX –{—ˆ‚Ìƒƒ“ƒoŠÖ”ŒÄ‚Ño‚µ
+            // DirectX æœ¬æ¥ã®ãƒ¡ãƒ³ãƒé–¢æ•°å‘¼ã³å‡ºã—
             super::DrawIndexedInstanced(IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
         }
     };
 
     SetD3D11DeviceContextHookInterface<HookTestD3D11DeviceContext>(g_pImmediateContext);
-    // ‘½d hook ‚à‰Â”\BÅŒã‚É“o˜^‚µ‚½‚à‚Ì‚©‚ç‡‚ÉŒÄ‚Î‚ê‚Ü‚·
+    // å¤šé‡ hook ã‚‚å¯èƒ½ã€‚æœ€å¾Œã«ç™»éŒ²ã—ãŸã‚‚ã®ã‹ã‚‰é †ã«å‘¼ã°ã‚Œã¾ã™
     SetD3D11DeviceContextHookInterface<HookTestD3D11DeviceContext>(g_pImmediateContext);
 */
 
@@ -981,7 +981,7 @@ public:
 //                      Hook API
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// void* ‚ÅˆêŠ‡ˆ—‚Å‚«‚é‚ªAƒ~ƒX‚ª‹N‚«‚â‚·‚»‚¤‚È•”•ª‚È‚Ì‚ÅŒ^ƒ`ƒFƒbƒN‚Ì‚½‚ßŒÂ•Ê‚É—pˆÓ
+// void* ã§ä¸€æ‹¬å‡¦ç†ã§ãã‚‹ãŒã€ãƒŸã‚¹ãŒèµ·ãã‚„ã™ãã†ãªéƒ¨åˆ†ãªã®ã§å‹ãƒã‚§ãƒƒã‚¯ã®ãŸã‚å€‹åˆ¥ã«ç”¨æ„
 void _SetDXGISwapChainHookInterface(IDXGISwapChain *pTarget, IDXGISwapChain *pHook);
 void _SetD3D11DeviceHookInterface(ID3D11Device *pTarget, ID3D11Device *pHook);
 void _SetD3D11DeviceContextHookInterface(ID3D11DeviceContext *pTarget, ID3D11DeviceContext *pHook);

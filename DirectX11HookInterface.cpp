@@ -16,7 +16,7 @@ inline void set_vtable(T _this, void **vtable)
 }
 
 
-// ‘½d hook ‚ğÀŒ»‚·‚é‚½‚ß‚Ì vtable stack
+// å¤šé‡ hook ã‚’å®Ÿç¾ã™ã‚‹ãŸã‚ã® vtable stack
 class VTableStack
 {
 private:
