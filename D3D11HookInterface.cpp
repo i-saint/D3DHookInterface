@@ -1670,6 +1670,7 @@ void STDMETHODCALLTYPE D3D11BlendStateHook::GetDesc( D3D11_BLEND_DESC *pDesc )
 
 template TUnknownHook<ID3D11Counter>;
 template TD3D11DeviceChildHook<ID3D11Counter>;
+template TD3D11AsynchronousHook<ID3D11Counter>;
 
 void STDMETHODCALLTYPE D3D11CounterHook::GetDesc( D3D11_COUNTER_DESC *pDesc )
 {
