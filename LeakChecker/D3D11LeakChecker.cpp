@@ -2,55 +2,81 @@
 #include "D3D11LeakChecker.h"
 #include <algorithm>
 #include <map>
+#include <vector>
 
 namespace {
+
+size_t g_frame = 0;
 
 struct CallStack
 {
     size_t stack[D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE];
+    size_t frame;
 
-    CallStack() { std::fill_n(stack, _countof(stack), 0); }
+    CallStack() : frame(0)
+    {
+        std::fill_n(stack, _countof(stack), 0);
+    }
 };
 
 struct LeckCheckInfo
 {
     CallStack callstack_create;
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-    CallStack callstack_ref[D3D11LEAKCHECKER_MAX_ADDREF_TRACE];
-    ULONG ref_pos;
+    std::vector<CallStack> callstacks_ref;
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
 
     LeckCheckInfo()
-#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-        : ref_pos(0)
-#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     {
     }
 
-    void PushAddRefCallstack()
+    void pushAddrefCallstack()
     {
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+        if(callstacks_ref.size() < D3D11LEAKCHECKER_MAX_ADDREF_TRACE) {
+            CallStack cs;
+            cs.frame = g_frame;
+            callstacks_ref.push_back(cs);
+        }
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     }
 
-    void PopAddRefCallstack()
+    void popAddrefCallstack()
     {
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+        if(!callstacks_ref.empty()) {
+            callstacks_ref.pop_back();
+        }
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+    }
+
+    void printLeakInfo()
+    {
+        OutputDebugStringA("created here:\n");
+
+#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+        for(std::vector<CallStack>::iterator i=callstacks_ref.begin(); i!=callstacks_ref.end(); ++i) {
+            OutputDebugStringA("AddRef():\n");
+
+        }
+#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+        OutputDebugStringA("\n");
     }
 };
 
-std::map<void*, LeckCheckInfo> g_lc;
+typedef std::map<IUnknown*, LeckCheckInfo> LeakInfoTable;
+LeakInfoTable g_leak_info;
 
 template<class T>
 void AddD3D11Resource(T v)
 {
-    g_lc[v];
+    LeckCheckInfo &lci = g_leak_info[v];
+    lci.callstack_create.frame = g_frame;
 }
 
-void EraseD3D11Resource(void *p)
+void EraseD3D11Resource(IUnknown *p)
 {
-    g_lc.erase(p);
+    g_leak_info.erase(p);
 }
 
 
@@ -62,6 +88,7 @@ public:
     virtual ULONG STDMETHODCALLTYPE AddRef(void)
     {
         ULONG r = super::AddRef();
+        g_leak_info[this].pushAddrefCallstack();
         return r;
     }
 
@@ -69,6 +96,7 @@ public:
     {
         ULONG r = super::Release();
         if(r==0) { EraseD3D11Resource(this); }
+        else { g_leak_info[this].popAddrefCallstack(); }
         return r;
     }
 };
@@ -76,7 +104,7 @@ public:
 } // namespace
 
 
-class D3D11LeakCheckerDevice : public D3D11DeviceHook
+class D3D11DeviceLeakChecked : public TLeakChecker<D3D11DeviceHook>
 {
 typedef D3D11DeviceHook super;
 public:
@@ -335,13 +363,41 @@ public:
     }
 };
 
-
-void D3D11LeakCheckerSetHook(ID3D11Device *pTarget)
+class DXGISwapChainLeakChecked : public TLeakChecker<DXGISwapChainHook>
 {
-    D3D11SetHook<D3D11LeakCheckerDevice>(pTarget);
+typedef DXGISwapChainHook super;
+public:
+    virtual HRESULT STDMETHODCALLTYPE Present( 
+        UINT SyncInterval,
+        UINT Flags)
+    {
+        ++g_frame;
+        return super::Present(SyncInterval, Flags);
+    }
+};
+
+void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice)
+{
+    D3D11SetHook<DXGISwapChainLeakChecked>(pSwapChain);
+    D3D11SetHook<D3D11DeviceLeakChecked>(pDevice);
+}
+
+void D3D11LeakCheckerFinalize()
+{
+    for(LeakInfoTable::iterator i=g_leak_info.begin(); i!=g_leak_info.end(); ++i) {
+        D3D11RemoveAllHook(i->first);
+    }
 }
 
 void D3D11LeakCheckerPrintLeakInfo()
 {
-
+    if(g_leak_info.empty()) {
+        OutputDebugStringA("D3D11LeakCheckerPrintLeakInfo(): no leak detected.\n");
+    }
+    else {
+        OutputDebugStringA("D3D11LeakCheckerPrintLeakInfo(): leak detected.\n");
+        for(LeakInfoTable::iterator i=g_leak_info.begin(); i!=g_leak_info.end(); ++i) {
+            i->second.printLeakInfo();
+        }
+    }
 }
