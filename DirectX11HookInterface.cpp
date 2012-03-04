@@ -1,4 +1,4 @@
-#include "DirectX11HookInterface.h"
+﻿#include "DirectX11HookInterface.h"
 #include <vector>
 #include <map>
 

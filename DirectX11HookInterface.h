@@ -1,4 +1,4 @@
-#ifndef _ist_DirectX11HookInterface_h_
+﻿#ifndef _ist_DirectX11HookInterface_h_
 #define _ist_DirectX11HookInterface_h_
 #include <d3d11.h>
 
