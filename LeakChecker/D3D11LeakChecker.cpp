@@ -1,77 +1,115 @@
 ﻿#include "../D3D11HookInterface.h"
 #include "D3D11LeakChecker.h"
+#include "Callstack.h"
 #include <algorithm>
 #include <map>
 #include <vector>
 
-namespace {
-
-size_t g_frame = 0;
 
 struct CallStack
 {
-    size_t stack[D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE];
+    void *stack[D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE];
+    size_t size;
     size_t frame;
 
-    CallStack() : frame(0)
+    CallStack() : size(0), frame(0)
     {
-        std::fill_n(stack, _countof(stack), 0);
+        std::fill_n(stack, _countof(stack), (void*)NULL);
     }
 };
 
-struct LeckCheckInfo
+struct TraceInfo
 {
-    CallStack callstack_create;
+    void *address;
+    CallStack trace_create;
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-    std::vector<CallStack> callstacks_ref;
+    std::vector<CallStack> trace_ref;
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
 
-    LeckCheckInfo()
+    TraceInfo() : address(NULL)
     {
     }
 
-    void pushAddrefCallstack()
-    {
-#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-        if(callstacks_ref.size() < D3D11LEAKCHECKER_MAX_ADDREF_TRACE) {
-            CallStack cs;
-            cs.frame = g_frame;
-            callstacks_ref.push_back(cs);
-        }
-#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-    }
-
-    void popAddrefCallstack()
-    {
-#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-        if(!callstacks_ref.empty()) {
-            callstacks_ref.pop_back();
-        }
-#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-    }
-
-    void printLeakInfo()
-    {
-        OutputDebugStringA("created here:\n");
-
-#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-        for(std::vector<CallStack>::iterator i=callstacks_ref.begin(); i!=callstacks_ref.end(); ++i) {
-            OutputDebugStringA("AddRef():\n");
-
-        }
-#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
-        OutputDebugStringA("\n");
-    }
+    void pushAddrefCallstack();
+    void popAddrefCallstack();
+    void printLeakInfo();
 };
 
-typedef std::map<IUnknown*, LeckCheckInfo> LeakInfoTable;
+
+namespace {
+
+typedef std::map<IUnknown*, TraceInfo> LeakInfoTable;
 LeakInfoTable g_leak_info;
+size_t g_frame = 0;
+
+} // namespace
+
+
+void TraceInfo::pushAddrefCallstack()
+{
+#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+    if(trace_ref.size() < D3D11LEAKCHECKER_MAX_ADDREF_TRACE) {
+        CallStack cs;
+        cs.frame = g_frame;
+        cs.size = GetCallstack(cs.stack, D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE, 0);
+        trace_ref.push_back(cs);
+    }
+#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+}
+
+void TraceInfo::popAddrefCallstack()
+{
+#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+    if(!trace_ref.empty()) {
+        trace_ref.pop_back();
+    }
+#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+}
+
+void TraceInfo::printLeakInfo()
+{
+    // コールスタックの必要な部分だけ抽出
+    // コンパイルオプションで変動するのでこの指定の仕方はよくないかも…
+    int c_head=0, c_tail=0;
+#ifdef _WIN64
+#ifdef _DEBUG
+    c_head = 3; c_tail = 4;
+#else
+    c_head = 2; c_tail = 3;
+#endif
+#else
+#ifdef _DEBUG
+    c_head = 2; c_tail = 5;
+#else
+    c_tail = 3; c_tail = 4;
+#endif
+#endif
+
+    std::string str;
+    char buf[128];
+    sprintf_s(buf, "0x%p Create [frame %d]\n", address, trace_create.frame);
+    str += buf;
+    str += CallstackToString(trace_create.stack, trace_create.size, c_head-1, c_tail, "    ");
+
+#ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+    for(std::vector<CallStack>::iterator i=trace_ref.begin(); i!=trace_ref.end(); ++i) {
+        sprintf_s(buf, "  AddRef() [frame %d]\n", i->frame);
+        str += buf;
+        str += CallstackToString(i->stack, i->size, c_head, c_tail, "    ");
+    }
+#endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
+    str += "\n";
+    OutputDebugStringA(str.c_str());
+}
+
 
 template<class T>
 void AddD3D11Resource(T v)
 {
-    LeckCheckInfo &lci = g_leak_info[v];
-    lci.callstack_create.frame = g_frame;
+    TraceInfo &lci = g_leak_info[v];
+    lci.address = v;
+    lci.trace_create.frame = g_frame;
+    lci.trace_create.size = GetCallstack(lci.trace_create.stack, D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE, 0);
 }
 
 void EraseD3D11Resource(IUnknown *p)
@@ -100,8 +138,6 @@ public:
         return r;
     }
 };
-
-} // namespace
 
 
 class D3D11DeviceLeakChecked : public TLeakChecker<D3D11DeviceHook>
@@ -378,6 +414,8 @@ public:
 
 void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice)
 {
+    InitializeSymbol();
+
     D3D11SetHook<DXGISwapChainLeakChecked>(pSwapChain);
     D3D11SetHook<D3D11DeviceLeakChecked>(pDevice);
 }
@@ -387,6 +425,8 @@ void D3D11LeakCheckerFinalize()
     for(LeakInfoTable::iterator i=g_leak_info.begin(); i!=g_leak_info.end(); ++i) {
         D3D11RemoveAllHook(i->first);
     }
+
+    FinalizeSymbol();
 }
 
 void D3D11LeakCheckerPrintLeakInfo()
