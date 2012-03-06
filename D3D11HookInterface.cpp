@@ -54,9 +54,10 @@ public:
 };
 
 namespace {
-    std::map<void*, VTableStack> g_vtables;
+    typedef std::map<IUnknown*, VTableStack> VTables;
+    VTables g_vtables;
 
-    void _D3D11SetHookInternal(void *pTarget, void *pHook)
+    void _D3D11SetHookInternal(IUnknown *pTarget, IUnknown *pHook)
     {
         VTableStack &vs = g_vtables[pTarget];
 
@@ -70,20 +71,26 @@ namespace {
         set_vtable(pTarget, get_vtable(pHook));
     }
 
-    void _D3D11RemoveHookInternal(void *pTarget, void *pHook)
+    void _D3D11RemoveHookInternal(IUnknown *pTarget, IUnknown *pHook)
     {
-        VTableStack &vs = g_vtables[pTarget];
-        vs.removeVTable(pTarget, get_vtable(pHook));
-        if(vs.getStackSize()==1) {
-            g_vtables.erase(pTarget);
+        VTables::iterator i = g_vtables.find(pTarget);
+        if(i!=g_vtables.end()) {
+            VTableStack &vs = i->second;
+            vs.removeVTable(pTarget, get_vtable(pHook));
+            if(vs.getStackSize()==1) {
+                g_vtables.erase(pTarget);
+            }
         }
     }
 
-    void _D3D11RemoveAllHookInternal(void *pTarget)
+    void _D3D11RemoveAllHookInternal(IUnknown *pTarget)
     {
-        VTableStack &vs = g_vtables[pTarget];
-        vs.removeAllVTable(pTarget);
-        g_vtables.erase(pTarget);
+        VTables::iterator i = g_vtables.find(pTarget);
+        if(i!=g_vtables.end()) {
+            VTableStack &vs = i->second;
+            vs.removeAllVTable(pTarget);
+            g_vtables.erase(pTarget);
+        }
     }
 } // namespace 
 

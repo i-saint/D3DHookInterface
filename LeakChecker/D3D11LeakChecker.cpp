@@ -466,6 +466,8 @@ void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevic
 
     D3D11SetHook<DXGISwapChainLeakChecked>(pSwapChain);
     D3D11SetHook<D3D11DeviceLeakChecked>(pDevice);
+    AddD3D11Resource(pSwapChain);
+    AddD3D11Resource(pDevice);
 }
 
 void D3D11LeakCheckerFinalize()
