@@ -56,7 +56,6 @@ std::string AddressToString(void *address)
     }
     else if(!::SymGetLineFromAddr(process, (DWORDX)address, &dispLine, &line)) {
         sprintf_s(buf, "%s!%s + 0x%x\n", imageModule.ModuleName, imageSymbol->Name, ((size_t)address-(size_t)imageSymbol->Address) );
-        return buf;
     }
     else {
         sprintf_s(buf, "%s(%d): %s!%s + 0x%x\n", line.FileName, line.LineNumber,

@@ -2,11 +2,13 @@
 #define _ist_D3D11LeakChecker_h_
 
 // DirectX11 のリソースのリークチェック機能を提供します。
+// D3D11LeakCheckerPrintLeakInfo() を呼んだ時点で解放されてないリソースを、作成された場所のコールスタックと共に表示します。
 // 
+// D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE を define している場合、追加で AddRef() / Release() した場所のコールスタックと呼ばれた回数を表示します。
+// D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE は相応のコストがかかると思われます。
 
 
 #define D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE 32
-#define D3D11LEAKCHECKER_MAX_ADDREF_TRACE 16
 #define D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
 
 void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice);
