@@ -73,15 +73,15 @@ void TraceInfo::printLeakInfo()
     int c_head=0, c_tail=0;
 #ifdef _WIN64
 #ifdef _DEBUG
-    c_head = 3; c_tail = 4;
+    c_head = 2; c_tail = 4;
 #else
-    c_head = 2; c_tail = 3;
+    c_head = 0; c_tail = 3;
 #endif
 #else
 #ifdef _DEBUG
     c_head = 2; c_tail = 5;
 #else
-    c_tail = 3; c_tail = 4;
+    c_tail = 0; c_tail = 4;
 #endif
 #endif
 
@@ -89,13 +89,13 @@ void TraceInfo::printLeakInfo()
     char buf[128];
     sprintf_s(buf, "0x%p Create [frame %d]\n", address, trace_create.frame);
     str += buf;
-    str += CallstackToString(trace_create.stack, trace_create.size, c_head-1, c_tail, "    ");
+    str += CallstackToString(trace_create.stack, trace_create.size, c_head, c_tail, "    ");
 
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     for(std::vector<CallStack>::iterator i=trace_ref.begin(); i!=trace_ref.end(); ++i) {
         sprintf_s(buf, "  AddRef() [frame %d]\n", i->frame);
         str += buf;
-        str += CallstackToString(i->stack, i->size, c_head, c_tail, "    ");
+        str += CallstackToString(i->stack, i->size, c_head+1, c_tail, "    ");
     }
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     str += "\n";

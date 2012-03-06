@@ -5,22 +5,8 @@
 #pragma comment(lib, "imagehlp.lib")
 
 
-namespace {
-    typedef USHORT (WINAPI *RtlCaptureStackBackTraceDef)(ULONG FramesToSkip, ULONG FramesToCapture, PVOID *BackTrace, PULONG BackTraceHash);
-
-    RtlCaptureStackBackTraceDef RtlCaptureStackBackTraceProc = NULL;
-    HMODULE g_kernel32 = NULL;
-} // namespace
-
-
 bool InitializeSymbol()
 {
-    g_kernel32 = ::LoadLibraryA("kernel32.dll");
-    if(!g_kernel32) {
-        return false;
-    }
-    RtlCaptureStackBackTraceProc = (RtlCaptureStackBackTraceDef)::GetProcAddress(g_kernel32, "RtlCaptureStackBackTrace");
-
     if(!::SymInitialize(::GetCurrentProcess(), NULL, TRUE)) {
         return false;
     }
@@ -32,18 +18,12 @@ bool InitializeSymbol()
 void FinalizeSymbol()
 {
     ::SymCleanup(::GetCurrentProcess());
-    ::FreeLibrary(g_kernel32);
-    RtlCaptureStackBackTraceProc = NULL;
-    g_kernel32 = NULL;
 }
 
 
 int GetCallstack(void **callstack, int callstack_size, int skip_size)
 {
-    if(RtlCaptureStackBackTraceProc) {
-        return RtlCaptureStackBackTraceProc(skip_size, callstack_size, callstack, NULL);
-    }
-    return 0;
+    return CaptureStackBackTrace(skip_size, callstack_size, callstack, NULL);
 }
 
 std::string AddressToString(void *address)
