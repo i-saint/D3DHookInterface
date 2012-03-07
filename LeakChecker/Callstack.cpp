@@ -36,7 +36,7 @@ std::string AddressToString(void *address)
     typedef PDWORD PDWORDX;
 #endif
 
-    char buf[256];
+    char buf[1024];
     HANDLE process = ::GetCurrentProcess();
     IMAGEHLP_MODULE imageModule = { sizeof(IMAGEHLP_MODULE) };
     IMAGEHLP_LINE line ={sizeof(IMAGEHLP_LINE)};

@@ -33,6 +33,7 @@ struct ReferenceInfo
 struct TraceInfo
 {
     void *address;
+    void **vtable;
     size_t ref_count;
     CallStack trace_create;
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
@@ -41,7 +42,7 @@ struct TraceInfo
     ReferenceTable trace_release;
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
 
-    TraceInfo() : address(NULL), ref_count(1)
+    TraceInfo() : address(NULL), vtable(NULL), ref_count(1)
     {
     }
 
@@ -50,13 +51,15 @@ struct TraceInfo
     void printLeakInfo();
 };
 
+typedef std::map<IUnknown*, TraceInfo> TraceTable;
+
 
 namespace {
 
-typedef std::map<IUnknown*, TraceInfo> TraceTable;
- 
-TraceTable g_leak_info;
+TraceTable g_trace_info;
 size_t g_frame = 0;
+bool g_opt_hook_add = false;
+bool g_opt_initialize_symbols = false;
 
 } // namespace
 
@@ -128,20 +131,20 @@ void TraceInfo::printLeakInfo()
     str += buf;
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     str += "\n";
-    str += CallstackToString(trace_create.stack, trace_create.size, c_head, c_tail, "    ");
+    str += CallstackToString(trace_create.stack, static_cast<int>(trace_create.size), c_head, c_tail, "    ");
 
 #ifdef D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     for(ReferenceTable::iterator i=trace_addref.begin(); i!=trace_addref.end(); ++i) {
         ReferenceInfo &ri = i->second;
         sprintf_s(buf, "  AddRef() %d times\n", ri.count);
         str += buf;
-        str += CallstackToString(ri.stack.stack, ri.stack.size, c_head+1, c_tail, "    ");
+        str += CallstackToString(ri.stack.stack, static_cast<int>(ri.stack.size), c_head+1, c_tail, "    ");
     }
     for(ReferenceTable::iterator i=trace_release.begin(); i!=trace_release.end(); ++i) {
         ReferenceInfo &ri = i->second;
         sprintf_s(buf, "  Release() %d times\n", ri.count);
         str += buf;
-        str += CallstackToString(ri.stack.stack, ri.stack.size, c_head+1, c_tail, "    ");
+        str += CallstackToString(ri.stack.stack, static_cast<int>(ri.stack.size), c_head+1, c_tail, "    ");
     }
 #endif // D3D11LEAKCHECKER_ENABLE_ADDREF_TRACE
     str += "\n";
@@ -150,25 +153,50 @@ void TraceInfo::printLeakInfo()
 
 
 template<class T>
-void AddD3D11Resource(T v)
+inline void** get_vtable(T _this)
 {
-    TraceInfo &lci = g_leak_info[v];
-    lci.address = v;
-    lci.trace_create.frame = g_frame;
-    lci.trace_create.size = GetCallstack(lci.trace_create.stack, D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE, 0);
+    return ((void***)_this)[0];
+}
+
+template<class T> class TLeakChecker;
+class D3D11DeviceLeakChecked;
+class DXGISwapChainLeakChecked;
+
+template<class T> struct GetLeakCheckedTypeD3D11 { typedef TLeakChecker<typename D3D11GetHookType<T>::result_type> result_type; };
+template<> struct GetLeakCheckedTypeD3D11<ID3D11Device> { typedef D3D11DeviceLeakChecked result_type; };
+template<> struct GetLeakCheckedTypeD3D11<IDXGISwapChain> { typedef DXGISwapChainLeakChecked result_type; };
+
+template<class T>
+void AddD3D11Object(T *v)
+{
+    typedef typename GetLeakCheckedTypeD3D11<T>::result_type HookType;
+    if(g_opt_hook_add) {
+        D3D11AddHook<HookType>(v);
+    }
+    else {
+        D3D11SetHook<HookType>(v);
+    }
+
+    HookType hooker;
+    TraceInfo &ti = g_trace_info[v];
+    ti = TraceInfo(); // 古い内部オブジェクトの情報が残ってる可能性があるので掃除
+    ti.address = v;
+    ti.vtable = get_vtable(&hooker);
+    ti.trace_create.frame = g_frame;
+    ti.trace_create.size = GetCallstack(ti.trace_create.stack, D3D11LEAKCHECKER_MAX_CALLSTACK_SIZE, 0);
 }
 
 
 template<class T>
 class TLeakChecker : public T
 {
-    typedef T super;
+typedef T super;
 public:
     virtual ULONG STDMETHODCALLTYPE AddRef(void)
     {
         ULONG r = super::AddRef();
-        TraceTable::iterator i = g_leak_info.find(this);
-        if(i!=g_leak_info.end()) {
+        TraceTable::iterator i = g_trace_info.find(this);
+        if(i!=g_trace_info.end()) {
             i->second.handleAddRef(r);
         }
         return r;
@@ -177,9 +205,9 @@ public:
     virtual ULONG STDMETHODCALLTYPE Release(void)
     {
         ULONG r = super::Release();
-        TraceTable::iterator i = g_leak_info.find(this);
-        if(i!=g_leak_info.end()) {
-            if(r==0) { g_leak_info.erase(i); }
+        TraceTable::iterator i = g_trace_info.find(this);
+        if(i!=g_trace_info.end()) {
+            if(r==0) { g_trace_info.erase(i); }
             else { i->second.handleRelease(r); }
         }
 
@@ -198,7 +226,7 @@ public:
         ID3D11Buffer **ppBuffer)
     {
         HRESULT r = super::CreateBuffer(pDesc, pInitialData, ppBuffer);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11BufferHook> >(*ppBuffer); AddD3D11Resource(*ppBuffer); }
+        if(r==S_OK) { AddD3D11Object(*ppBuffer); }
         return r;
     }
 
@@ -208,7 +236,7 @@ public:
         ID3D11Texture1D **ppTexture1D)
     {
         HRESULT r = super::CreateTexture1D(pDesc, pInitialData, ppTexture1D);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11Texture1DHook> >(*ppTexture1D); AddD3D11Resource(*ppTexture1D); }
+        if(r==S_OK) { AddD3D11Object(*ppTexture1D); }
         return r;
     }
 
@@ -218,7 +246,7 @@ public:
         ID3D11Texture2D **ppTexture2D)
     {
         HRESULT r = super::CreateTexture2D(pDesc, pInitialData, ppTexture2D);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11Texture2DHook> >(*ppTexture2D); AddD3D11Resource(*ppTexture2D); }
+        if(r==S_OK) { AddD3D11Object(*ppTexture2D); }
         return r;
     }
 
@@ -228,7 +256,7 @@ public:
         ID3D11Texture3D **ppTexture3D)
     {
         HRESULT r = super::CreateTexture3D(pDesc, pInitialData, ppTexture3D);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11Texture3DHook> >(*ppTexture3D); AddD3D11Resource(*ppTexture3D); }
+        if(r==S_OK) { AddD3D11Object(*ppTexture3D); }
         return r;
     }
 
@@ -238,7 +266,7 @@ public:
         ID3D11ShaderResourceView **ppSRView)
     {
         HRESULT r = super::CreateShaderResourceView(pResource, pDesc, ppSRView);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11ShaderResourceViewHook> >(*ppSRView); AddD3D11Resource(*ppSRView); }
+        if(r==S_OK) { AddD3D11Object(*ppSRView); }
         return r;
     }
 
@@ -248,7 +276,7 @@ public:
         ID3D11UnorderedAccessView **ppUAView)
     {
         HRESULT r = super::CreateUnorderedAccessView(pResource, pDesc, ppUAView);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11UnorderedAccessViewHook> >(*ppUAView); AddD3D11Resource(*ppUAView); }
+        if(r==S_OK) { AddD3D11Object(*ppUAView); }
         return r;
     }
 
@@ -258,7 +286,7 @@ public:
         ID3D11RenderTargetView **ppRTView)
     {
         HRESULT r = super::CreateRenderTargetView(pResource, pDesc, ppRTView);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11RenderTargetViewHook> >(*ppRTView); AddD3D11Resource(*ppRTView); }
+        if(r==S_OK) { AddD3D11Object(*ppRTView); }
         return r;
     }
 
@@ -268,7 +296,7 @@ public:
         ID3D11DepthStencilView **ppDepthStencilView)
     {
         HRESULT r = super::CreateDepthStencilView(pResource, pDesc, ppDepthStencilView);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11DepthStencilViewHook> >(*ppDepthStencilView); AddD3D11Resource(*ppDepthStencilView); }
+        if(r==S_OK) { AddD3D11Object(*ppDepthStencilView); }
         return r;
     }
 
@@ -280,7 +308,7 @@ public:
         ID3D11InputLayout **ppInputLayout)
     {
         HRESULT r = super::CreateInputLayout(pInputElementDescs, NumElements, pShaderBytecodeWithInputSignature, BytecodeLength, ppInputLayout);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11InputLayoutHook> >(*ppInputLayout); AddD3D11Resource(*ppInputLayout); }
+        if(r==S_OK) { AddD3D11Object(*ppInputLayout); }
         return r;
     }
 
@@ -291,7 +319,7 @@ public:
         ID3D11VertexShader **ppVertexShader)
     {
         HRESULT r = super::CreateVertexShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppVertexShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11VertexShaderHook> >(*ppVertexShader); AddD3D11Resource(*ppVertexShader); }
+        if(r==S_OK) { AddD3D11Object(*ppVertexShader); }
         return r;
     }
 
@@ -302,7 +330,7 @@ public:
         ID3D11GeometryShader **ppGeometryShader)
     {
         HRESULT r = super::CreateGeometryShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppGeometryShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11GeometryShaderHook> >(*ppGeometryShader); AddD3D11Resource(*ppGeometryShader); }
+        if(r==S_OK) { AddD3D11Object(*ppGeometryShader); }
         return r;
     }
 
@@ -318,7 +346,7 @@ public:
         ID3D11GeometryShader **ppGeometryShader)
     {
         HRESULT r = super::CreateGeometryShaderWithStreamOutput(pShaderBytecode, BytecodeLength, pSODeclaration, NumEntries, pBufferStrides, NumStrides, RasterizedStream, pClassLinkage, ppGeometryShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11GeometryShaderHook> >(*ppGeometryShader); AddD3D11Resource(*ppGeometryShader); }
+        if(r==S_OK) { AddD3D11Object(*ppGeometryShader); }
         return r;
     }
 
@@ -329,7 +357,7 @@ public:
         ID3D11PixelShader **ppPixelShader)
     {
         HRESULT r = super::CreatePixelShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppPixelShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11PixelShaderHook> >(*ppPixelShader); AddD3D11Resource(*ppPixelShader); }
+        if(r==S_OK) { AddD3D11Object(*ppPixelShader); }
         return r;
     }
 
@@ -340,7 +368,7 @@ public:
         ID3D11HullShader **ppHullShader)
     {
         HRESULT r = super::CreateHullShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppHullShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11HullShaderHook> >(*ppHullShader); AddD3D11Resource(*ppHullShader); }
+        if(r==S_OK) { AddD3D11Object(*ppHullShader); }
         return r;
     }
 
@@ -351,7 +379,7 @@ public:
         ID3D11DomainShader **ppDomainShader)
     {
         HRESULT r = super::CreateDomainShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppDomainShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11DomainShaderHook> >(*ppDomainShader); AddD3D11Resource(*ppDomainShader); }
+        if(r==S_OK) { AddD3D11Object(*ppDomainShader); }
         return r;
     }
 
@@ -362,7 +390,7 @@ public:
         ID3D11ComputeShader **ppComputeShader)
     {
         HRESULT r = super::CreateComputeShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppComputeShader);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11ComputeShaderHook> >(*ppComputeShader); AddD3D11Resource(*ppComputeShader); }
+        if(r==S_OK) { AddD3D11Object(*ppComputeShader); }
         return r;
     }
 
@@ -370,7 +398,7 @@ public:
         ID3D11ClassLinkage **ppLinkage)
     {
         HRESULT r = super::CreateClassLinkage(ppLinkage);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11ClassLinkageHook> >(*ppLinkage); AddD3D11Resource(*ppLinkage); }
+        if(r==S_OK) { AddD3D11Object(*ppLinkage); }
         return r;
     }
 
@@ -379,7 +407,7 @@ public:
         ID3D11BlendState **ppBlendState)
     {
         HRESULT r = super::CreateBlendState(pBlendStateDesc, ppBlendState);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11BlendStateHook> >(*ppBlendState); AddD3D11Resource(*ppBlendState); }
+        if(r==S_OK) { AddD3D11Object(*ppBlendState); }
         return r;
     }
 
@@ -388,7 +416,7 @@ public:
         ID3D11DepthStencilState **ppDepthStencilState)
     {
         HRESULT r = super::CreateDepthStencilState(pDepthStencilDesc, ppDepthStencilState);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11DepthStencilStateHook> >(*ppDepthStencilState); AddD3D11Resource(*ppDepthStencilState); }
+        if(r==S_OK) { AddD3D11Object(*ppDepthStencilState); }
         return r;
     }
 
@@ -397,7 +425,7 @@ public:
         ID3D11RasterizerState **ppRasterizerState)
     {
         HRESULT r = super::CreateRasterizerState(pRasterizerDesc, ppRasterizerState);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11RasterizerStateHook> >(*ppRasterizerState); AddD3D11Resource(*ppRasterizerState); }
+        if(r==S_OK) { AddD3D11Object(*ppRasterizerState); }
         return r;
     }
 
@@ -406,7 +434,7 @@ public:
         ID3D11SamplerState **ppSamplerState)
     {
         HRESULT r = super::CreateSamplerState(pSamplerDesc, ppSamplerState);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11SamplerStateHook> >(*ppSamplerState); AddD3D11Resource(*ppSamplerState); }
+        if(r==S_OK) { AddD3D11Object(*ppSamplerState); }
         return r;
     }
 
@@ -415,7 +443,7 @@ public:
         ID3D11Query **ppQuery)
     {
         HRESULT r = super::CreateQuery(pQueryDesc, ppQuery);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11QueryHook> >(*ppQuery); AddD3D11Resource(*ppQuery); }
+        if(r==S_OK) { AddD3D11Object(*ppQuery); }
         return r;
     }
 
@@ -424,7 +452,7 @@ public:
         ID3D11Predicate **ppPredicate)
     {
         HRESULT r = super::CreatePredicate(pPredicateDesc, ppPredicate);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11PredicateHook> >(*ppPredicate); AddD3D11Resource(*ppPredicate); }
+        if(r==S_OK) { AddD3D11Object(*ppPredicate); }
         return r;
     }
 
@@ -433,7 +461,7 @@ public:
         ID3D11Counter **ppCounter)
     {
         HRESULT r = super::CreateCounter(pCounterDesc, ppCounter);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11CounterHook> >(*ppCounter); AddD3D11Resource(*ppCounter); }
+        if(r==S_OK) { AddD3D11Object(*ppCounter); }
         return r;
     }
 
@@ -442,7 +470,7 @@ public:
         ID3D11DeviceContext **ppDeferredContext)
     {
         HRESULT r = super::CreateDeferredContext(ContextFlags, ppDeferredContext);
-        if(r==S_OK) { D3D11SetHook< TLeakChecker<D3D11DeviceContextHook> >(*ppDeferredContext); AddD3D11Resource(*ppDeferredContext); }
+        if(r==S_OK) { AddD3D11Object(*ppDeferredContext); }
         return r;
     }
 };
@@ -460,33 +488,34 @@ public:
     }
 };
 
-void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice)
-{
-    InitializeSymbol();
 
-    D3D11SetHook<DXGISwapChainLeakChecked>(pSwapChain);
-    D3D11SetHook<D3D11DeviceLeakChecked>(pDevice);
-    AddD3D11Resource(pSwapChain);
-    AddD3D11Resource(pDevice);
+void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice, int opt)
+{
+    if((opt & D3D11LC_HOOK_ADD)!=0) { g_opt_hook_add=true; }
+    if((opt & D3D11LC_INIT_SYMBOLS)!=0) { g_opt_initialize_symbols=true; }
+
+    if(g_opt_initialize_symbols) { InitializeSymbol(); }
+    AddD3D11Object(pSwapChain);
+    AddD3D11Object(pDevice);
 }
 
 void D3D11LeakCheckerFinalize()
 {
-    for(TraceTable::iterator i=g_leak_info.begin(); i!=g_leak_info.end(); ++i) {
-        D3D11RemoveAllHook(i->first);
+    for(TraceTable::iterator i=g_trace_info.begin(); i!=g_trace_info.end(); ++i) {
+        D3D11RemoveHook(i->first, i->second.vtable);
     }
 
-    FinalizeSymbol();
+    if(g_opt_initialize_symbols) { FinalizeSymbol(); }
 }
 
 void D3D11LeakCheckerPrintLeakInfo()
 {
-    if(g_leak_info.empty()) {
+    if(g_trace_info.empty()) {
         OutputDebugStringA("D3D11LeakCheckerPrintLeakInfo(): no leak detected.\n");
     }
     else {
         OutputDebugStringA("D3D11LeakCheckerPrintLeakInfo(): leak detected.\n");
-        for(TraceTable::iterator i=g_leak_info.begin(); i!=g_leak_info.end(); ++i) {
+        for(TraceTable::iterator i=g_trace_info.begin(); i!=g_trace_info.end(); ++i) {
             i->second.printLeakInfo();
         }
     }
