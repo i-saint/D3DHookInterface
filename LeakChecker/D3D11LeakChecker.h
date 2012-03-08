@@ -17,14 +17,10 @@ enum D3D11LC_OPTION {
     // symbol の初期化/終了処理を行うか (SymInitialize()/SymCleanup())
     // 他のモジュールと競合する場合などはこのオプションを無効にする。
     D3D11LC_INIT_SYMBOLS = 1,
-
-    // このオプションを入れると、D3D11SetHook() ではなく D3DAddHook() で hook を仕込む。
-    // 他のモジュールが既に hook を仕込んでいる場合有効にする。
-    D3D11LC_HOOK_ADD = 2,
 };
 
 // opt: D3D11LC_OPTION の bit の組み合わせ
-void D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice, int opt=D3D11LC_INIT_SYMBOLS);
+bool D3D11LeakCheckerInitialize(IDXGISwapChain *pSwapChain, ID3D11Device *pDevice, int opt=D3D11LC_INIT_SYMBOLS);
 void D3D11LeakCheckerFinalize();
 
 void D3D11LeakCheckerPrintLeakInfo();

@@ -113,39 +113,6 @@ template<class HookType> void D3D11SetHook(ID3D11DomainShader *pTarget);
 template<class HookType> void D3D11SetHook(ID3D11ComputeShader *pTarget);
 
 
-template<class HookType> void D3D11AddHook(IDXGISwapChain *pTarget);
-
-template<class HookType> void D3D11AddHook(ID3D11Device *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11DeviceContext *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Asynchronous *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11BlendState *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Counter *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11CommandList *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11DepthStencilState *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11InputLayout *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Predicate *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Query *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11RasterizerState *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11SamplerState *pTarget);
-
-template<class HookType> void D3D11AddHook(ID3D11Buffer *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Texture1D *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Texture2D *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11Texture3D *pTarget);
-
-template<class HookType> void D3D11AddHook(ID3D11DepthStencilView *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11RenderTargetView *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11ShaderResourceView *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11UnorderedAccessView *pTarget);
-
-template<class HookType> void D3D11AddHook(ID3D11ClassInstance *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11ClassLinkage *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11VertexShader *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11PixelShader *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11GeometryShader *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11HullShader *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11DomainShader *pTarget);
-template<class HookType> void D3D11AddHook(ID3D11ComputeShader *pTarget);
 
 
 
@@ -1268,114 +1235,79 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // void* で一括処理できるが、ミスが起きやすそうな部分なので型チェックのため個別に用意
-void D3D11AddHook(IDXGISwapChain *pTarget, IDXGISwapChain *pHook);
+void D3D11SetHook(IDXGISwapChain *pTarget, IDXGISwapChain *pHook);
 
-void D3D11AddHook(ID3D11Device *pTarget, ID3D11Device *pHook);
-void D3D11AddHook(ID3D11DeviceContext *pTarget, ID3D11DeviceContext *pHook);
-void D3D11AddHook(ID3D11Asynchronous *pTarget, ID3D11Asynchronous *pHook);
-void D3D11AddHook(ID3D11BlendState *pTarget, ID3D11BlendState *pHook);
-void D3D11AddHook(ID3D11Counter *pTarget, ID3D11Counter *pHook);
-void D3D11AddHook(ID3D11CommandList *pTarget, ID3D11CommandList *pHook);
-void D3D11AddHook(ID3D11DepthStencilState *pTarget, ID3D11DepthStencilState *pHook);
-void D3D11AddHook(ID3D11InputLayout *pTarget, ID3D11InputLayout *pHook);
-void D3D11AddHook(ID3D11Predicate *pTarget, ID3D11Predicate *pHook);
-void D3D11AddHook(ID3D11Query *pTarget, ID3D11Query *pHook);
-void D3D11AddHook(ID3D11RasterizerState *pTarget, ID3D11RasterizerState *pHook);
-void D3D11AddHook(ID3D11SamplerState *pTarget, ID3D11SamplerState *pHook);
+void D3D11SetHook(ID3D11Device *pTarget, ID3D11Device *pHook);
+void D3D11SetHook(ID3D11DeviceContext *pTarget, ID3D11DeviceContext *pHook);
+void D3D11SetHook(ID3D11Asynchronous *pTarget, ID3D11Asynchronous *pHook);
+void D3D11SetHook(ID3D11BlendState *pTarget, ID3D11BlendState *pHook);
+void D3D11SetHook(ID3D11Counter *pTarget, ID3D11Counter *pHook);
+void D3D11SetHook(ID3D11CommandList *pTarget, ID3D11CommandList *pHook);
+void D3D11SetHook(ID3D11DepthStencilState *pTarget, ID3D11DepthStencilState *pHook);
+void D3D11SetHook(ID3D11InputLayout *pTarget, ID3D11InputLayout *pHook);
+void D3D11SetHook(ID3D11Predicate *pTarget, ID3D11Predicate *pHook);
+void D3D11SetHook(ID3D11Query *pTarget, ID3D11Query *pHook);
+void D3D11SetHook(ID3D11RasterizerState *pTarget, ID3D11RasterizerState *pHook);
+void D3D11SetHook(ID3D11SamplerState *pTarget, ID3D11SamplerState *pHook);
 
-void D3D11AddHook(ID3D11Buffer *pTarget, ID3D11Buffer *pHook);
-void D3D11AddHook(ID3D11Texture1D *pTarget, ID3D11Texture1D *pHook);
-void D3D11AddHook(ID3D11Texture2D *pTarget, ID3D11Texture2D *pHook);
-void D3D11AddHook(ID3D11Texture3D *pTarget, ID3D11Texture3D *pHook);
+void D3D11SetHook(ID3D11Buffer *pTarget, ID3D11Buffer *pHook);
+void D3D11SetHook(ID3D11Texture1D *pTarget, ID3D11Texture1D *pHook);
+void D3D11SetHook(ID3D11Texture2D *pTarget, ID3D11Texture2D *pHook);
+void D3D11SetHook(ID3D11Texture3D *pTarget, ID3D11Texture3D *pHook);
 
-void D3D11AddHook(ID3D11DepthStencilView *pTarget, ID3D11DepthStencilView *pHook);
-void D3D11AddHook(ID3D11RenderTargetView *pTarget, ID3D11RenderTargetView *pHook);
-void D3D11AddHook(ID3D11ShaderResourceView *pTarget, ID3D11ShaderResourceView *pHook);
-void D3D11AddHook(ID3D11UnorderedAccessView *pTarget, ID3D11UnorderedAccessView *pHook);
+void D3D11SetHook(ID3D11DepthStencilView *pTarget, ID3D11DepthStencilView *pHook);
+void D3D11SetHook(ID3D11RenderTargetView *pTarget, ID3D11RenderTargetView *pHook);
+void D3D11SetHook(ID3D11ShaderResourceView *pTarget, ID3D11ShaderResourceView *pHook);
+void D3D11SetHook(ID3D11UnorderedAccessView *pTarget, ID3D11UnorderedAccessView *pHook);
 
-void D3D11AddHook(ID3D11ClassInstance *pTarget, ID3D11ClassInstance *pHook);
-void D3D11AddHook(ID3D11ClassLinkage *pTarget, ID3D11ClassLinkage *pHook);
-void D3D11AddHook(ID3D11VertexShader *pTarget, ID3D11VertexShader *pHook);
-void D3D11AddHook(ID3D11PixelShader *pTarget, ID3D11PixelShader *pHook);
-void D3D11AddHook(ID3D11GeometryShader *pTarget, ID3D11GeometryShader *pHook);
-void D3D11AddHook(ID3D11HullShader *pTarget, ID3D11HullShader *pHook);
-void D3D11AddHook(ID3D11DomainShader *pTarget, ID3D11DomainShader *pHook);
-void D3D11AddHook(ID3D11ComputeShader *pTarget, ID3D11ComputeShader *pHook);
+void D3D11SetHook(ID3D11ClassInstance *pTarget, ID3D11ClassInstance *pHook);
+void D3D11SetHook(ID3D11ClassLinkage *pTarget, ID3D11ClassLinkage *pHook);
+void D3D11SetHook(ID3D11VertexShader *pTarget, ID3D11VertexShader *pHook);
+void D3D11SetHook(ID3D11PixelShader *pTarget, ID3D11PixelShader *pHook);
+void D3D11SetHook(ID3D11GeometryShader *pTarget, ID3D11GeometryShader *pHook);
+void D3D11SetHook(ID3D11HullShader *pTarget, ID3D11HullShader *pHook);
+void D3D11SetHook(ID3D11DomainShader *pTarget, ID3D11DomainShader *pHook);
+void D3D11SetHook(ID3D11ComputeShader *pTarget, ID3D11ComputeShader *pHook);
+
 
 void D3D11RemoveHook(IUnknown *pTarget, IUnknown *pHook);
 template<class HookType> inline void D3D11RemoveHook(IUnknown *pTarget) { HookType v; D3D11RemoveHook(pTarget, &v); }
 void D3D11RemoveHook(IUnknown *pTarget, void **vtable);
-void D3D11RemoveAllHook(IUnknown *pTarget);
+void D3D11RemoveAllHooks(IUnknown *pTarget);
 
 
+template<class HookType> inline void D3D11SetHook(IDXGISwapChain *pTarget)              { HookType v; D3D11SetHook(pTarget, &v); }
 
-template<class HookType> inline void D3D11SetHook(IDXGISwapChain *pTarget)              { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Device *pTarget)                { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11DeviceContext *pTarget)         { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Asynchronous *pTarget)          { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11BlendState *pTarget)            { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Counter *pTarget)               { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11CommandList *pTarget)           { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11DepthStencilState *pTarget)     { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11InputLayout *pTarget)           { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Predicate *pTarget)             { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Query *pTarget)                 { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11RasterizerState *pTarget)       { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11SamplerState *pTarget)          { HookType v; D3D11SetHook(pTarget, &v); }
 
-template<class HookType> inline void D3D11SetHook(ID3D11Device *pTarget)                { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11DeviceContext *pTarget)         { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Asynchronous *pTarget)          { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11BlendState *pTarget)            { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Counter *pTarget)               { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11CommandList *pTarget)           { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11DepthStencilState *pTarget)     { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11InputLayout *pTarget)           { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Predicate *pTarget)             { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Query *pTarget)                 { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11RasterizerState *pTarget)       { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11SamplerState *pTarget)          { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Buffer *pTarget)                { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Texture1D *pTarget)             { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Texture2D *pTarget)             { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11Texture3D *pTarget)             { HookType v; D3D11SetHook(pTarget, &v); }
 
-template<class HookType> inline void D3D11SetHook(ID3D11Buffer *pTarget)                { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Texture1D *pTarget)             { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Texture2D *pTarget)             { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11Texture3D *pTarget)             { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11DepthStencilView *pTarget)      { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11RenderTargetView *pTarget)      { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11ShaderResourceView *pTarget)    { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11UnorderedAccessView *pTarget)   { HookType v; D3D11SetHook(pTarget, &v); }
 
-template<class HookType> inline void D3D11SetHook(ID3D11DepthStencilView *pTarget)      { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11RenderTargetView *pTarget)      { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11ShaderResourceView *pTarget)    { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11UnorderedAccessView *pTarget)   { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-
-template<class HookType> inline void D3D11SetHook(ID3D11ClassInstance *pTarget)         { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11ClassLinkage *pTarget)          { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11VertexShader *pTarget)          { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11PixelShader *pTarget)           { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11GeometryShader *pTarget)        { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11HullShader *pTarget)            { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11DomainShader *pTarget)          { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11SetHook(ID3D11ComputeShader *pTarget)         { D3D11RemoveAllHook(pTarget); HookType v; D3D11AddHook(pTarget, &v); }
-
-
-template<class HookType> inline void D3D11AddHook(IDXGISwapChain *pTarget)           { HookType v; D3D11AddHook(pTarget, &v); }
-
-template<class HookType> inline void D3D11AddHook(ID3D11Device *pTarget)             { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11DeviceContext *pTarget)      { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Asynchronous *pTarget)       { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11BlendState *pTarget)         { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Counter *pTarget)            { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11CommandList *pTarget)        { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11DepthStencilState *pTarget)  { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11InputLayout *pTarget)        { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Predicate *pTarget)          { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Query *pTarget)              { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11RasterizerState *pTarget)    { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11SamplerState *pTarget)       { HookType v; D3D11AddHook(pTarget, &v); }
-
-template<class HookType> inline void D3D11AddHook(ID3D11Buffer *pTarget)             { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Texture1D *pTarget)          { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Texture2D *pTarget)          { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11Texture3D *pTarget)          { HookType v; D3D11AddHook(pTarget, &v); }
-
-template<class HookType> inline void D3D11AddHook(ID3D11DepthStencilView *pTarget)   { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11RenderTargetView *pTarget)   { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11ShaderResourceView *pTarget) { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11UnorderedAccessView *pTarget){ HookType v; D3D11AddHook(pTarget, &v); }
-
-template<class HookType> inline void D3D11AddHook(ID3D11ClassInstance *pTarget)      { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11ClassLinkage *pTarget)       { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11VertexShader *pTarget)       { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11PixelShader *pTarget)        { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11GeometryShader *pTarget)     { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11HullShader *pTarget)         { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11DomainShader *pTarget)       { HookType v; D3D11AddHook(pTarget, &v); }
-template<class HookType> inline void D3D11AddHook(ID3D11ComputeShader *pTarget)      { HookType v; D3D11AddHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11ClassInstance *pTarget)         { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11ClassLinkage *pTarget)          { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11VertexShader *pTarget)          { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11PixelShader *pTarget)           { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11GeometryShader *pTarget)        { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11HullShader *pTarget)            { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11DomainShader *pTarget)          { HookType v; D3D11SetHook(pTarget, &v); }
+template<class HookType> inline void D3D11SetHook(ID3D11ComputeShader *pTarget)         { HookType v; D3D11SetHook(pTarget, &v); }
 
 #endif // _ist_D3D11HookInterface_h_

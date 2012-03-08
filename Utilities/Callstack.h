@@ -1,5 +1,5 @@
-﻿#ifndef _ist_LeakChecker_Callstack_
-#define _ist_LeakChecker_Callstack_
+﻿#ifndef _ist_D3DHookInterface_Utilities_Callstack_
+#define _ist_D3DHookInterface_Utilities_Callstack_
 
 #include <string>
 
@@ -12,4 +12,4 @@ std::string AddressToString(void *address);
 // utility
 std::string CallstackToString(void **callstack, int callstack_size, int clamp_head=0, int clamp_tail=0, const char *indent="");
 
-#endif // _ist_LeakChecker_Callstack_
+#endif // _ist_D3DHookInterface_Utilities_Callstack_
