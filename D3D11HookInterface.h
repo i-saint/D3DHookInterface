@@ -38,10 +38,8 @@
     };
 
     D3D11SetHook<HookTestD3D11DeviceContext>(g_pImmediateContext);
-
-    // 多重 hook も可能。2 つめ以降は SetHook ではなく AddHook を使う必要があります。
-    // 最後に登録したものから順に呼ばれます
-    D3D11AddHook<HookTestD3D11DeviceContext>(g_pImmediateContext);
+    // 多重 hook も可能。最後に登録したものから順に呼ばれます
+    D3D11SetHook<HookTestD3D11DeviceContext>(g_pImmediateContext);
 */
 
 class DXGISwapChainHook;
