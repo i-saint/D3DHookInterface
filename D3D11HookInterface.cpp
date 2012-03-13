@@ -45,7 +45,7 @@ namespace {
     typedef std::map<IUnknown*, VTableStack> VTables;
     VTables g_vtables;
 
-    void _D3D11SetHook(IUnknown *pTarget, IUnknown *pHook)
+    void D3D11SetHookInternal(IUnknown *pTarget, void **vtable)
     {
         VTableStack &vs = g_vtables[pTarget];
 
@@ -53,13 +53,13 @@ namespace {
         if(vs.getStackSize()==0) {
             vs.pushVTable(get_vtable(pTarget));
         }
-        vs.pushVTable(get_vtable(pHook));
+        vs.pushVTable(vtable);
 
         // vtable を差し替える
-        set_vtable(pTarget, get_vtable(pHook));
+        set_vtable(pTarget, vtable);
     }
 
-    void _D3D11RemoveHook(IUnknown *pTarget, void **vtable)
+    void D3D11RemoveHookInternal(IUnknown *pTarget, void **vtable)
     {
         VTables::iterator i = g_vtables.find(pTarget);
         if(i!=g_vtables.end()) {
@@ -71,7 +71,7 @@ namespace {
         }
     }
 
-    void _D3D11RemoveAllHooks(IUnknown *pTarget)
+    void D3D11RemoveAllHooksInternal(IUnknown *pTarget)
     {
         VTables::iterator i = g_vtables.find(pTarget);
         if(i!=g_vtables.end()) {
@@ -82,43 +82,45 @@ namespace {
     }
 } // namespace 
 
-void D3D11SetHook(IDXGISwapChain *pTarget, IDXGISwapChain *pHook)                       { _D3D11SetHook(pTarget, pHook); }
+void D3D11SetHookDirect(IUnknown *pTarget, void **vtable)                                           { D3D11SetHookInternal(pTarget, vtable); }
 
-void D3D11SetHook(ID3D11Device *pTarget, ID3D11Device *pHook)                           { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11DeviceContext *pTarget, ID3D11DeviceContext *pHook)             { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Asynchronous *pTarget, ID3D11Asynchronous *pHook)               { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11BlendState *pTarget, ID3D11BlendState *pHook)                   { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Counter *pTarget, ID3D11Counter *pHook)                         { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11CommandList *pTarget, ID3D11CommandList *pHook)                 { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11DepthStencilState *pTarget, ID3D11DepthStencilState *pHook)     { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11InputLayout *pTarget, ID3D11InputLayout *pHook)                 { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Predicate *pTarget, ID3D11Predicate *pHook)                     { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Query *pTarget, ID3D11Query *pHook)                             { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11RasterizerState *pTarget, ID3D11RasterizerState *pHook)         { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11SamplerState *pTarget, ID3D11SamplerState *pHook)               { _D3D11SetHook(pTarget, pHook); }
+void D3D11SetHookInstanciated(IDXGISwapChain *pTarget, IDXGISwapChain *pHook)                       { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
 
-void D3D11SetHook(ID3D11Buffer *pTarget, ID3D11Buffer *pHook)                           { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Texture1D *pTarget, ID3D11Texture1D *pHook)                     { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Texture2D *pTarget, ID3D11Texture2D *pHook)                     { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11Texture3D *pTarget, ID3D11Texture3D *pHook)                     { _D3D11SetHook(pTarget, pHook); }
+void D3D11SetHookInstanciated(ID3D11Device *pTarget, ID3D11Device *pHook)                           { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11DeviceContext *pTarget, ID3D11DeviceContext *pHook)             { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Asynchronous *pTarget, ID3D11Asynchronous *pHook)               { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11BlendState *pTarget, ID3D11BlendState *pHook)                   { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Counter *pTarget, ID3D11Counter *pHook)                         { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11CommandList *pTarget, ID3D11CommandList *pHook)                 { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11DepthStencilState *pTarget, ID3D11DepthStencilState *pHook)     { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11InputLayout *pTarget, ID3D11InputLayout *pHook)                 { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Predicate *pTarget, ID3D11Predicate *pHook)                     { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Query *pTarget, ID3D11Query *pHook)                             { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11RasterizerState *pTarget, ID3D11RasterizerState *pHook)         { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11SamplerState *pTarget, ID3D11SamplerState *pHook)               { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
 
-void D3D11SetHook(ID3D11DepthStencilView *pTarget, ID3D11DepthStencilView *pHook)       { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11RenderTargetView *pTarget, ID3D11RenderTargetView *pHook)       { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11ShaderResourceView *pTarget, ID3D11ShaderResourceView *pHook)   { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11UnorderedAccessView *pTarget, ID3D11UnorderedAccessView *pHook) { _D3D11SetHook(pTarget, pHook); }
+void D3D11SetHookInstanciated(ID3D11Buffer *pTarget, ID3D11Buffer *pHook)                           { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Texture1D *pTarget, ID3D11Texture1D *pHook)                     { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Texture2D *pTarget, ID3D11Texture2D *pHook)                     { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11Texture3D *pTarget, ID3D11Texture3D *pHook)                     { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
 
-void D3D11SetHook(ID3D11ClassInstance *pTarget, ID3D11ClassInstance *pHook)             { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11ClassLinkage *pTarget, ID3D11ClassLinkage *pHook)               { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11VertexShader *pTarget, ID3D11VertexShader *pHook)               { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11PixelShader *pTarget, ID3D11PixelShader *pHook)                 { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11GeometryShader *pTarget, ID3D11GeometryShader *pHook)           { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11HullShader *pTarget, ID3D11HullShader *pHook)                   { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11DomainShader *pTarget, ID3D11DomainShader *pHook)               { _D3D11SetHook(pTarget, pHook); }
-void D3D11SetHook(ID3D11ComputeShader *pTarget, ID3D11ComputeShader *pHook)             { _D3D11SetHook(pTarget, pHook); }
+void D3D11SetHookInstanciated(ID3D11DepthStencilView *pTarget, ID3D11DepthStencilView *pHook)       { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11RenderTargetView *pTarget, ID3D11RenderTargetView *pHook)       { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11ShaderResourceView *pTarget, ID3D11ShaderResourceView *pHook)   { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11UnorderedAccessView *pTarget, ID3D11UnorderedAccessView *pHook) { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
 
-void D3D11RemoveHook(IUnknown *pTarget, IUnknown *pHook)                                { _D3D11RemoveHook(pTarget, get_vtable(pHook)); }
-void D3D11RemoveHook(IUnknown *pTarget, void **vtable)                                  { _D3D11RemoveHook(pTarget, vtable); }
-void D3D11RemoveAllHooks(IUnknown *pTarget)                                             { _D3D11RemoveAllHooks(pTarget); }
+void D3D11SetHookInstanciated(ID3D11ClassInstance *pTarget, ID3D11ClassInstance *pHook)             { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11ClassLinkage *pTarget, ID3D11ClassLinkage *pHook)               { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11VertexShader *pTarget, ID3D11VertexShader *pHook)               { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11PixelShader *pTarget, ID3D11PixelShader *pHook)                 { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11GeometryShader *pTarget, ID3D11GeometryShader *pHook)           { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11HullShader *pTarget, ID3D11HullShader *pHook)                   { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11DomainShader *pTarget, ID3D11DomainShader *pHook)               { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11SetHookInstanciated(ID3D11ComputeShader *pTarget, ID3D11ComputeShader *pHook)             { D3D11SetHookInternal(pTarget, get_vtable(pHook)); }
+
+void D3D11RemoveHookDirect(IUnknown *pTarget, void **vtable)                                        { D3D11RemoveHookInternal(pTarget, vtable); }
+void D3D11RemoveHookInstanciated(IUnknown *pTarget, IUnknown *pHook)                                { D3D11RemoveHookInternal(pTarget, get_vtable(pHook)); }
+void D3D11RemoveAllHooks(IUnknown *pTarget)                                                         { D3D11RemoveAllHooksInternal(pTarget); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                      template implementation
@@ -149,9 +151,10 @@ ULONG STDMETHODCALLTYPE TUnknownHook<T>::Release( void )
 {
     VTableStack &vs = g_vtables[this];
     set_vtable(this, vs.up());
+    int depth = vs.getDepth(); // ↓の Relase() で vs が開放されてる可能性があるので、ここで取得する必要がある
     ULONG r = Release();
     if(r==0) {
-        if(vs.getDepth()==0) { g_vtables.erase(this); }
+        if(depth==0) { g_vtables.erase(this); }
     }
     else {
         set_vtable(this, vs.down());

@@ -26,7 +26,7 @@ int GetCallstack(void **callstack, int callstack_size, int skip_size)
     return CaptureStackBackTrace(skip_size, callstack_size, callstack, NULL);
 }
 
-std::string AddressToString(void *address)
+std::string AddressToSymbolName(void *address)
 {
 #ifdef _WIN64
     typedef DWORD64 DWORDX;
@@ -64,14 +64,14 @@ std::string AddressToString(void *address)
     return buf;
 }
 
-std::string CallstackToString(void **callstack, int callstack_size, int clamp_head, int clamp_tail, const char *indent)
+std::string CallstackToSymbolNames(void **callstack, int callstack_size, int clamp_head, int clamp_tail, const char *indent)
 {
     std::string tmp;
     int begin = std::max<int>(0, clamp_head);
     int end = std::max<int>(0, callstack_size-clamp_tail);
     for(int i=begin; i<end; ++i) {
         tmp += indent;
-        tmp += AddressToString(callstack[i]);
+        tmp += AddressToSymbolName(callstack[i]);
     }
     return tmp;
 }

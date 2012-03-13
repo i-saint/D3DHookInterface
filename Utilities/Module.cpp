@@ -53,3 +53,15 @@ bool IsAddressInD3D11DLL(void *address, DWORD dwProcessId)
     void *range_end = (char*)range_begin + s_d3d11dll.modBaseSize;
     return address >= range_begin && address < range_end;
 }
+
+bool DetectNvidiaNSight()
+{
+    std::vector<MODULEENTRY32W> modules;
+    GetAllModuleInfo(modules);
+    for(std::vector<MODULEENTRY32W>::iterator i=modules.begin(); i!=modules.end(); ++i) {
+        if(wcsstr(i->szModule, L"Nvda.Graphics.Interception")!=NULL) {
+            return true;
+        }
+    }
+    return false;
+}
